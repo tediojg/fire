@@ -1,0 +1,1660 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#140e0b">
+<title>FIRE</title>
+<link rel="icon" href="icon.png" type="image/png">
+<style>
+  :root {
+    --bg: #fff6f0; --panel: #ffffff; --panel2: #fff0e6; --text: #2a1a12; --muted: #8a6f60; --line: #f0dccf;
+    --fire1: #ffb300; --fire2: #ff6a1a; --fire3: #e8261d;
+    --grad: linear-gradient(135deg, var(--fire1) 0%, var(--fire2) 50%, var(--fire3) 100%);
+    --on-fire: #fff; --theirs: #ffffff; --theirs-text: #2a1a12; --shadow: 0 8px 30px rgba(232, 80, 20, .18);
+    --ok: #22c55e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #120d0b; --panel: #1c1512; --panel2: #261b16; --text: #f6ebe4; --muted: #a58f82; --line: #33241d;
+      --theirs: #2a1e18; --theirs-text: #f6ebe4; --shadow: 0 8px 40px rgba(255, 90, 20, .20);
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body { font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  .screen { display: none; height: 100%; flex-direction: column; }
+  .screen.active { display: flex; }
+  .logo { display: block; }
+  button { font-family: inherit; }
+
+  /* ---------- Acceso ---------- */
+  #s-auth { background:
+      radial-gradient(120% 60% at 50% 0%, rgba(255, 106, 26, .28) 0%, transparent 60%), var(--bg);
+    overflow-y: auto; }
+  .hero { text-align: center; margin: auto auto 0; padding: 32px 20px 8px; }
+  .hero-logo { width: 190px; height: 190px; border-radius: 50%; display: block; margin: 0 auto;
+    box-shadow: 0 0 60px rgba(255, 106, 26, .45), 0 0 0 2px rgba(255, 140, 40, .25); }
+  .hero p { margin: 14px 0 0; color: var(--muted); font-size: 15px; }
+  .auth { margin: 22px auto auto; width: min(380px, 92vw); background: var(--panel); padding: 22px; border-radius: 22px;
+    border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .auth h2 { margin: 0 0 4px; font-size: 20px; }
+  .auth label { display: block; font-size: 13px; color: var(--muted); margin: 14px 0 6px; }
+  .auth input { width: 100%; padding: 13px 14px; font-size: 16px; border: 1.5px solid var(--line); border-radius: 12px;
+    background: var(--panel2); color: var(--text); outline: none; transition: border-color .15s, box-shadow .15s; }
+  .auth input:focus { border-color: var(--fire2); box-shadow: 0 0 0 4px rgba(255, 106, 26, .18); }
+  .btn { width: 100%; margin-top: 18px; padding: 14px; font-size: 16px; font-weight: 700; letter-spacing: .3px; border: 0; border-radius: 12px;
+    background: var(--grad); color: var(--on-fire); cursor: pointer; box-shadow: 0 6px 18px rgba(232, 80, 20, .35); }
+  .btn:active { transform: translateY(1px); filter: brightness(.95); }
+  .link { background: none; border: 0; color: var(--fire2); margin-top: 12px; width: 100%; font-size: 14px; font-weight: 600; cursor: pointer; padding: 6px; }
+  .error { color: #ef4444; font-size: 14px; min-height: 20px; margin-top: 10px; }
+  .demo { font-size: 12px; color: var(--muted); text-align: center; margin: 4px 0 24px; padding: 0 20px; }
+  .hero, .auth, .demo { flex: none; }
+
+  /* Pantallas bajas (visor pequeño, teléfono en horizontal): todo más compacto */
+  @media (max-height: 760px) {
+    .hero { padding: 16px 20px 0; margin-top: 0; }
+    .hero-logo { width: 110px; height: 110px; }
+    .hero p { margin-top: 8px; font-size: 14px; }
+    .auth { margin-top: 14px; padding: 16px 18px; }
+    .auth label { margin: 10px 0 4px; }
+    .auth input { padding: 11px 12px; }
+    .btn { margin-top: 12px; padding: 12px; }
+    .error { min-height: 14px; margin-top: 6px; }
+  }
+
+  /* ---------- Barra superior ---------- */
+  header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; padding-top: calc(12px + env(safe-area-inset-top));
+    background: var(--panel); border-bottom: 1px solid var(--line); position: relative; }
+  header::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--grad); }
+  header .brand { display: flex; align-items: center; gap: 8px; flex: 1; }
+  header .brand-logo { width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 0 12px rgba(255, 106, 26, .5); }
+  header .brand span { font-weight: 800; font-size: 20px; letter-spacing: 5px;
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  header h2 { font-size: 17px; margin: 0; font-weight: 700; line-height: 1.1; }
+  header .who { flex: 1; min-width: 0; }
+  header .who small { color: var(--muted); font-size: 12px; }
+  .icon-btn { background: transparent; border: 0; color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
+  .icon-btn:active { background: var(--panel2); }
+  .icon-btn.back { color: var(--fire2); font-size: 26px; line-height: 1; padding: 2px 10px 6px; }
+
+  /* ---------- Lista de chats ---------- */
+  #users { flex: 1; overflow-y: auto; padding: 8px 10px; }
+  .user { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; cursor: pointer; }
+  .user:active { background: var(--panel2); }
+  .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--grad); color: #fff; flex: none; position: relative;
+    display: grid; place-items: center; font-weight: 800; font-size: 19px; text-transform: uppercase; }
+  .avatar.sm { width: 38px; height: 38px; font-size: 16px; }
+  .dot { position: absolute; right: -1px; bottom: -1px; width: 13px; height: 13px; border-radius: 50%; background: #8b7d75; border: 3px solid var(--bg); }
+  .dot.on { background: var(--ok); }
+  .user .info { min-width: 0; flex: 1; }
+  .user .name { font-weight: 700; }
+  .user .sub { font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { background: var(--grad); color: #fff; border-radius: 12px; min-width: 24px; padding: 2px 8px; font-size: 13px; font-weight: 800; text-align: center; }
+  .empty { padding: 50px 24px; text-align: center; color: var(--muted); }
+
+  /* ---------- Conversación ---------- */
+  #messages { flex: 1; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 4px;
+    background: radial-gradient(90% 40% at 50% 100%, rgba(255, 106, 26, .10), transparent 70%); }
+  #messages:empty::before { content: "Escribe el primer mensaje 🔥"; margin: auto; color: var(--muted); font-size: 15px; }
+  .msg { max-width: 80%; padding: 9px 13px 6px; border-radius: 18px 18px 18px 5px; background: var(--theirs); color: var(--theirs-text);
+    border: 1px solid var(--line); word-wrap: break-word; white-space: pre-wrap; align-self: flex-start; }
+  .msg.mine { align-self: flex-end; background: var(--grad); color: #fff; border: 0; border-radius: 18px 18px 5px 18px;
+    box-shadow: 0 4px 14px rgba(232, 80, 20, .25); }
+  .msg time { display: block; font-size: 11px; opacity: .65; text-align: right; margin-top: 2px; }
+  form.send { display: flex; gap: 8px; align-items: center; padding: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    background: var(--panel); border-top: 1px solid var(--line); }
+  form.send input { flex: 1; padding: 13px 16px; font-size: 16px; border: 1.5px solid var(--line); border-radius: 24px;
+    background: var(--panel2); color: var(--text); outline: none; }
+  form.send input:focus { border-color: var(--fire2); }
+  form.send svg { width: 22px; height: 22px; }
+
+  /* ---------- Fotos, audios y grabación ---------- */
+  form.send { position: relative; }
+  form.send[hidden] { display: none; }
+  form.send button.round, .rec button.round { width: 46px; height: 46px; border: 0; border-radius: 50%; background: var(--grad); color: #fff;
+    cursor: pointer; display: grid; place-items: center; box-shadow: 0 4px 14px rgba(232, 80, 20, .35); flex: none; }
+  form.send button.ghost { background: var(--panel2); color: var(--muted); box-shadow: none; border: 1.5px solid var(--line); }
+  form.send button.round svg, .rec button.round svg { width: 22px; height: 22px; }
+  form.send #send-btn { display: none; }
+  form.send.has-text #send-btn { display: grid; }
+  form.send.has-text #mic { display: none; }
+
+  .rec { display: flex; align-items: center; gap: 10px; padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    background: var(--panel); border-top: 1px solid var(--line); }
+  .rec[hidden] { display: none; }
+  .rec .icon-btn { font-size: 18px; color: var(--muted); }
+  .rec-dot { width: 12px; height: 12px; border-radius: 50%; background: #ef4444; animation: pulse 1s infinite; }
+  #rec-time { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .rec-hint { flex: 1; color: var(--muted); font-size: 14px; }
+  @keyframes pulse { 50% { opacity: .25; } }
+
+  .msg.media { padding: 4px 4px 4px; }
+  .msg.media time { padding: 0 8px 2px; }
+  .photo { display: block; width: 100%; max-width: 250px; max-height: 320px; object-fit: cover; border-radius: 14px; cursor: zoom-in; }
+  .msg.voice { min-width: 220px; }
+  .audio { display: flex; align-items: center; gap: 10px; }
+  .audio .play { width: 36px; height: 36px; border-radius: 50%; border: 0; flex: none; cursor: pointer; font-size: 13px; font-weight: 700;
+    background: var(--grad); color: #fff; display: grid; place-items: center; }
+  .msg.mine .audio .play { background: #fff; color: var(--fire3); }
+  .audio .bar { flex: 1; height: 6px; border-radius: 3px; background: rgba(128, 128, 128, .35); cursor: pointer; position: relative; }
+  .audio .fill { height: 100%; width: 0; border-radius: 3px; background: var(--fire2); }
+  .msg.mine .audio .fill { background: #fff; }
+  .atime { font-size: 12px; font-variant-numeric: tabular-nums; opacity: .85; min-width: 34px; text-align: right; }
+
+  #viewer { position: fixed; inset: 0; background: rgba(0, 0, 0, .92); display: grid; place-items: center; z-index: 20; cursor: zoom-out; }
+  #viewer[hidden] { display: none; }
+  #viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  #toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(20px); background: #2a1e18; color: #fff;
+    padding: 10px 16px; border-radius: 14px; font-size: 14px; opacity: 0; pointer-events: none; transition: .2s; z-index: 30; max-width: 90vw; text-align: center;
+    border: 1px solid rgba(255, 106, 26, .5); }
+  #toast.on { opacity: 1; transform: translateX(-50%); }
+
+  /* ---------- Menú "+", ubicación y confirmación ---------- */
+  .menu { position: absolute; left: 10px; bottom: calc(100% + 8px); background: var(--panel); border: 1px solid var(--line);
+    border-radius: 16px; padding: 6px; box-shadow: var(--shadow); z-index: 10; min-width: 170px; }
+  .menu[hidden] { display: none; }
+  .vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+  form.send .menu .mitem { display: flex; align-items: center; gap: 12px; padding: 12px; font-size: 16px; font-weight: 600; border-radius: 12px; cursor: pointer; color: var(--text); }
+  form.send .menu .mitem:active { background: var(--panel2); }
+  form.send .menu button { width: 100%; height: auto; border-radius: 12px; background: none; color: var(--text); box-shadow: none; border: 0;
+    display: flex; align-items: center; gap: 12px; padding: 12px; font-size: 16px; font-weight: 600; text-align: left; cursor: pointer; }
+  form.send .menu button:active { background: var(--panel2); }
+  .menu .mi { font-size: 20px; }
+
+  .msg.loc { padding: 6px; min-width: 230px; }
+  .msg.loc time { padding: 0 8px 2px; }
+  .locard { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 14px; text-decoration: none; color: inherit;
+    background: rgba(128, 128, 128, .14); }
+  .locard .pin { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 24px; flex: none;
+    background: radial-gradient(circle at 50% 40%, rgba(255, 179, 0, .45), rgba(232, 38, 29, .25)); }
+  .locard .t { font-weight: 700; }
+  .locard .s { font-size: 12px; opacity: .8; font-variant-numeric: tabular-nums; }
+  .locard .go { font-size: 13px; font-weight: 700; margin-top: 2px; text-decoration: underline; }
+
+  #confirm { position: fixed; inset: 0; background: rgba(0, 0, 0, .6); display: grid; place-items: center; z-index: 25; padding: 20px; }
+  #confirm[hidden] { display: none; }
+  .dialog { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 22px; width: min(340px, 100%); box-shadow: var(--shadow); }
+  .dialog h3 { margin: 0 0 8px; font-size: 18px; }
+  .dialog p { margin: 0 0 18px; color: var(--muted); font-size: 15px; }
+  .dialog .actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .dialog button { border: 0; border-radius: 12px; padding: 11px 18px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .dialog .plain { background: none; color: var(--muted); white-space: nowrap; }
+  .dialog .btn-sm { background: var(--grad); color: #fff; }
+
+  /* ---------- Documentos, videos, aviso y campana ---------- */
+  .msg.file { padding: 6px; min-width: 230px; max-width: 86%; }
+  .msg.file time { padding: 0 8px 2px; }
+  .filecard { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 14px; cursor: pointer;
+    background: rgba(128, 128, 128, .14); }
+  .filecard:active { filter: brightness(.9); }
+  .filecard .ext { width: 44px; height: 52px; border-radius: 10px; flex: none; display: grid; place-items: center; font-size: 11px; font-weight: 800;
+    letter-spacing: .5px; color: #fff; background: linear-gradient(160deg, #7c6a60, #4a3d36); }
+  .filecard .ext.pdf { background: linear-gradient(160deg, #ef4444, #b91c1c); }
+  .filecard .ext.doc { background: linear-gradient(160deg, #3b82f6, #1d4ed8); }
+  .filecard .ext.xls { background: linear-gradient(160deg, #22c55e, #15803d); }
+  .filecard .ext.ppt { background: linear-gradient(160deg, #fb923c, #c2410c); }
+  .filecard .fn { min-width: 0; }
+  .filecard .name { font-weight: 700; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .filecard .size { font-size: 12px; opacity: .8; }
+  .filecard .tap { font-size: 12px; font-weight: 700; text-decoration: underline; }
+
+  .vthumb { position: relative; width: 250px; max-width: 100%; aspect-ratio: 16 / 10; border-radius: 14px; overflow: hidden; cursor: pointer;
+    background: #1b1411; display: grid; place-items: center; }
+  .vthumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .vthumb .playbtn { position: relative; width: 52px; height: 52px; border-radius: 50%; background: rgba(0, 0, 0, .55); color: #fff;
+    display: grid; place-items: center; font-size: 20px; padding-left: 3px; border: 2px solid rgba(255, 255, 255, .8); }
+  .vthumb .vdur { position: absolute; right: 8px; bottom: 6px; font-size: 12px; font-weight: 700; color: #fff; background: rgba(0, 0, 0, .55);
+    padding: 1px 7px; border-radius: 8px; }
+
+  #viewer video { max-width: 100%; max-height: 100%; background: #000; }
+  #viewer video[hidden], #viewer img[hidden] { display: none; }
+  #viewer-close { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: 10px; width: 42px; height: 42px; border-radius: 50%;
+    border: 0; background: rgba(255, 255, 255, .15); color: #fff; font-size: 18px; cursor: pointer; z-index: 2; }
+
+  #banner { position: fixed; left: 10px; right: 10px; top: calc(10px + env(safe-area-inset-top)); z-index: 40; background: var(--panel);
+    border: 1px solid rgba(255, 106, 26, .6); border-radius: 16px; padding: 10px 14px; box-shadow: var(--shadow); cursor: pointer;
+    display: flex; align-items: center; gap: 10px; animation: drop .25s ease-out; }
+  #banner[hidden] { display: none; }
+  #banner .avatar { width: 36px; height: 36px; font-size: 15px; }
+  #banner .bt { min-width: 0; }
+  #banner .bn { font-weight: 800; font-size: 14px; }
+  #banner .bb { font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @keyframes drop { from { transform: translateY(-20px); opacity: 0; } }
+  #bell { font-size: 18px; padding: 6px 8px; }
+
+  /* ---------- Avatares con foto y pantalla de perfil ---------- */
+  .avatar { overflow: visible; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+  .avatar.xl { width: 128px; height: 128px; font-size: 52px; cursor: pointer; box-shadow: 0 0 40px rgba(255, 106, 26, .35); }
+  .hdr-avatar { border: 2px solid rgba(255, 140, 40, .8); padding: 0; cursor: pointer; font: inherit; color: #fff; flex: none; }
+  .pbody { flex: 1; overflow-y: auto; padding: 22px 20px 30px; width: min(480px, 100%); margin: 0 auto; }
+  .pavatar { position: relative; width: 128px; margin: 6px auto 4px; }
+  .pavatar .cam { position: absolute; right: -6px; bottom: 2px; width: 42px; height: 42px; border-radius: 50%; border: 3px solid var(--bg);
+    background: var(--grad); font-size: 18px; cursor: pointer; display: grid; place-items: center; padding: 0; }
+  .pbody .link { display: block; margin: 4px auto 6px; width: auto; }
+  .pbody .link[hidden] { display: none; }
+  .field { margin-top: 16px; }
+  .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .field input { width: 100%; padding: 13px 14px; font-size: 16px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel2);
+    color: var(--text); outline: none; }
+  .field input:focus { border-color: var(--fire2); box-shadow: 0 0 0 4px rgba(255, 106, 26, .18); }
+  .field input[readonly] { opacity: .65; }
+  .field small { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
+  details.pw { margin-top: 26px; border: 1px solid var(--line); border-radius: 16px; padding: 4px 16px 16px; background: var(--panel); }
+  details.pw summary { padding: 14px 0 6px; font-weight: 700; cursor: pointer; }
+  .ghost-btn { background: var(--panel2); color: var(--text); box-shadow: none; border: 1.5px solid var(--line); }
+  .admin-note { font-size: 13px; color: var(--muted); background: var(--panel2); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+  .acct { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; }
+  .acct .top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .acct .nm { font-weight: 700; }
+  .acct .em { font-size: 14px; color: var(--muted); word-break: break-all; }
+  .acct .meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .tag { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 10px; background: var(--panel2); color: var(--muted); }
+  .tag.ok { background: rgba(34,197,94,.18); color: #16a34a; } .tag.warn { background: rgba(255,179,0,.2); color: #b45309; } .tag.bad { background: rgba(239,68,68,.18); color: #dc2626; }
+  .acct .acts { display: flex; gap: 8px; margin-top: 10px; }
+  .acct .acts button { flex: 1; border: 1.5px solid var(--line); background: var(--panel2); color: var(--text); border-radius: 10px; padding: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .acct .acts .danger { color: #dc2626; border-color: rgba(239,68,68,.5); }
+  .out-btn { margin-top: 26px; background: none; color: #ef4444; box-shadow: none; border: 1.5px solid rgba(239, 68, 68, .5); }
+
+  /* ---------- Cuenta: código por correo ---------- */
+  #s-verify { background: radial-gradient(120% 60% at 50% 0%, rgba(255, 106, 26, .28) 0%, transparent 60%), var(--bg); overflow-y: auto; }
+  .vicon { font-size: 56px; text-align: center; margin: auto auto 0; padding-top: 28px; flex: none; }
+  .v-text { color: var(--muted); font-size: 15px; margin: 6px 0 4px; }
+  #v-code { font-size: 30px; letter-spacing: 12px; text-align: center; font-weight: 800; padding: 14px 8px 14px 20px; }
+  .simbox { background: rgba(255, 179, 0, .12); border: 1px dashed rgba(255, 179, 0, .75); border-radius: 12px; padding: 10px 12px;
+    font-size: 13px; margin: 10px 0 2px; }
+  .simbox b { display: block; font-size: 26px; letter-spacing: 8px; margin-top: 4px; color: var(--fire1); font-variant-numeric: tabular-nums; }
+  .auth [hidden] { display: none !important; }
+  .link.sub { color: var(--muted); font-weight: 500; margin-top: 2px; }
+  .link:disabled { opacity: .6; cursor: default; }
+  .btn:disabled { opacity: .6; }
+</style>
+</head>
+<body>
+
+<section id="s-auth" class="screen active">
+  <div class="hero">
+    <img class="hero-logo" alt="FIRE" src="data:image/webp;base64,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">
+    <p>Mensajes que arden</p>
+  </div>
+  <div class="auth">
+    <h2 id="auth-title">Entrar</h2>
+    <div id="row-name"><label for="name">Nombre</label>
+    <input id="name" maxlength="30" autocomplete="name" placeholder="Cómo te verán los demás"></div>
+    <label for="email">Correo electrónico</label>
+    <input id="email" type="email" inputmode="email" autocapitalize="none" autocomplete="email" placeholder="tucorreo@ejemplo.com">
+    <div id="row-pass"><label for="password">Contraseña</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="Mínimo 8, con letras y números"></div>
+    <div id="row-pass2"><label for="password2">Repite la contraseña</label>
+    <input id="password2" type="password" autocomplete="new-password"></div>
+    <div class="error" id="auth-error"></div>
+    <button type="button" class="btn" id="auth-btn">Entrar</button>
+    <button type="button" class="link" id="auth-toggle">No tengo cuenta · Crear una</button>
+    <button type="button" class="link sub" id="auth-forgot">¿Olvidaste tu contraseña?</button>
+  </div>
+  <div class="demo" id="demo-note"></div>
+</section>
+
+<section id="s-verify" class="screen">
+  <div class="vicon" aria-hidden="true">✉️</div>
+  <div class="auth">
+    <h2 id="v-title">Confirma tu correo</h2>
+    <p class="v-text" id="v-text"></p>
+    <div class="simbox" id="v-sim" hidden></div>
+    <label for="v-code">Código de 6 dígitos</label>
+    <input id="v-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="••••••">
+    <div id="v-newpw-row" hidden>
+      <label for="v-newpw">Contraseña nueva</label>
+      <input id="v-newpw" type="password" autocomplete="new-password" placeholder="Mínimo 8, con letras y números">
+      <label for="v-newpw2">Repite la contraseña nueva</label>
+      <input id="v-newpw2" type="password" autocomplete="new-password">
+    </div>
+    <div class="error" id="v-error"></div>
+    <button type="button" class="btn" id="v-btn">Confirmar correo</button>
+    <button type="button" class="link" id="v-resend">Reenviar código</button>
+    <button type="button" class="link sub" id="v-back">Volver</button>
+  </div>
+</section>
+
+<section id="s-users" class="screen">
+  <header>
+    <div class="brand"><img class="brand-logo" alt="" src="data:image/webp;base64,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"><span>FIRE</span></div>
+    <button type="button" class="icon-btn" id="bell" aria-label="Notificaciones">🔕</button>
+    <button type="button" class="avatar sm hdr-avatar" id="me-btn" aria-label="Mi perfil"></button>
+  </header>
+  <div id="users"></div>
+</section>
+
+<section id="s-chat" class="screen">
+  <header>
+    <button type="button" class="icon-btn back" id="back" aria-label="Volver">‹</button>
+    <div class="avatar sm" id="chat-avatar"></div>
+    <div class="who"><h2 id="chat-title"></h2><small id="chat-sub"></small></div>
+  </header>
+  <div id="messages"></div>
+  <div class="rec" id="rec" hidden>
+    <button type="button" class="icon-btn" id="rec-cancel" aria-label="Cancelar">🗑️</button>
+    <span class="rec-dot"></span><span id="rec-time">0:00</span>
+    <span class="rec-hint">Grabando…</span>
+    <button type="button" class="round" id="rec-send" aria-label="Enviar audio">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.400 20.400 21 12 3.400 3.600 3.400 10l12 2-12 2z"/></svg>
+    </button>
+  </div>
+  <form class="send" id="send-form" autocomplete="off">
+    <div class="menu" id="menu" hidden>
+      <label class="mitem" id="pick-photo" for="file"><span class="mi">🖼️</span> Foto</label>
+      <label class="mitem" id="pick-video" for="file-video"><span class="mi">🎬</span> Video</label>
+      <label class="mitem" id="pick-doc" for="file-doc"><span class="mi">📄</span> Documento</label>
+      <button type="button" id="pick-loc"><span class="mi">📍</span> Ubicación</button>
+    </div>
+    <button type="button" class="round ghost" id="attach" aria-label="Adjuntar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    <input id="text" placeholder="Escribe un mensaje" autocomplete="off" maxlength="2000">
+    <button type="button" class="round" id="mic" aria-label="Grabar audio"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.900V22h2v-3.100A7 7 0 0 0 19 12z"/></svg></button>
+    <button type="button" class="round" id="send-btn" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.400 20.400 21 12 3.400 3.600 3.400 10l12 2-12 2z"/></svg></button>
+    <input type="file" id="file" accept="image/*" class="vh">
+    <input type="file" id="file-video" accept="video/*" class="vh">
+    <input type="file" id="file-doc" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.rtf,.odt,.ods,.odp,.zip,.rar,.7z,.json,.xml,.md,application/pdf" class="vh">
+  </form>
+</section>
+
+<section id="s-admin" class="screen">
+  <header>
+    <button type="button" class="icon-btn back" id="admin-back" aria-label="Volver">‹</button>
+    <div class="who"><h2>Administración</h2><small id="admin-sub"></small></div>
+  </header>
+  <div class="pbody" id="admin-list"></div>
+</section>
+
+<section id="s-profile" class="screen">
+  <header>
+    <button type="button" class="icon-btn back" id="profile-back" aria-label="Volver">‹</button>
+    <div class="who"><h2>Mi perfil</h2></div>
+  </header>
+  <div class="pbody">
+    <div class="pavatar">
+      <div class="avatar xl" id="p-avatar" role="button" aria-label="Cambiar foto"></div>
+      <button type="button" class="cam" id="p-photo-btn" aria-label="Cambiar foto">📷</button>
+    </div>
+    <input type="file" id="p-file" accept="image/*" hidden>
+    <button type="button" class="link" id="p-photo-remove" hidden>Quitar foto</button>
+    <div class="field"><label for="p-name">Nombre</label><input id="p-name" maxlength="30" autocomplete="off"></div>
+    <div class="field"><label for="p-about">Info</label><input id="p-about" maxlength="80" placeholder="Cuéntales algo sobre ti" autocomplete="off"></div>
+    <div class="field"><label for="p-user">Correo</label><input id="p-user" readonly><small>Tu correo no se puede cambiar.</small></div>
+    <button type="button" class="btn" id="p-save">Guardar cambios</button>
+    <details class="pw">
+      <summary>Cambiar contraseña</summary>
+      <div class="field"><label for="pw-old">Contraseña actual</label><input id="pw-old" type="password" autocomplete="current-password"></div>
+      <div class="field"><label for="pw-new">Contraseña nueva</label><input id="pw-new" type="password" autocomplete="new-password"></div>
+      <div class="field"><label for="pw-new2">Repite la nueva</label><input id="pw-new2" type="password" autocomplete="new-password"></div>
+      <button type="button" class="btn ghost-btn" id="pw-save">Cambiar contraseña</button>
+    </details>
+    <button type="button" class="btn ghost-btn" id="open-admin" hidden>🛠️ Panel de administrador</button>
+    <button type="button" class="btn out-btn" id="logout">Cerrar sesión</button>
+  </div>
+</section>
+
+<div id="confirm" hidden>
+  <div class="dialog">
+    <h3 id="confirm-title"></h3>
+    <p id="confirm-text"></p>
+    <div class="actions"><button type="button" class="plain" id="confirm-cancel">Cancelar</button><button type="button" class="btn-sm" id="confirm-ok">Aceptar</button></div>
+  </div>
+</div>
+<div id="viewer" hidden>
+  <button type="button" id="viewer-close" aria-label="Cerrar">✕</button>
+  <img id="viewer-img" alt="">
+  <video id="viewer-video" controls playsinline hidden></video>
+</div>
+<div id="banner" hidden></div>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.supabase || document.write('<script src="supabase.js"><\/script>');</script>
+<script>
+(() => {
+  'use strict';
+  /* Conexión con el servidor. Con la URL y la clave puestas, la app usa Supabase (cuentas reales, correo real, mensajes entre teléfonos).
+     La clave "publishable" es pública por diseño: la seguridad la dan las reglas de la base de datos (supabase_setup.sql). */
+  const FIRE_CONFIG = {
+    supabaseUrl: 'https://arrposwwomulxfpuxbbw.supabase.co',
+    supabaseKey: 'sb_publishable_KcCqbdtWdGJWKiKtCIiNGw_i6S7swIP',
+  };
+  const MAX_DATA = 900 * 1024;           // fotos y audios van dentro del mensaje
+  const MAX_FILE = 10 * 1024 * 1024;     // videos y documentos
+  const BLOCKED = /\.(apk|exe|bat|cmd|msi|sh|scr|jar|com|vbs|ps1|dll)$/i;
+  const previewOf = (m) => ({ image: '📷 Foto', audio: '🎤 Mensaje de voz', location: '📍 Ubicación',
+    video: '🎬 Video', file: '📄 ' + (m.name || 'Documento') }[m.type] || m.text || '');
+
+const LocalBackend = (() => {
+  // localStorage puede no estar disponible en algunas vistas previas: usamos memoria como respaldo.
+  const mem = {};
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? (k in mem ? mem[k] : d) : JSON.parse(v); } catch { return k in mem ? mem[k] : d; } },
+    set(k, v) { mem[k] = v; try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+    del(k) { delete mem[k]; try { localStorage.removeItem(k); } catch {} },
+  };
+  const BOT = 'Eco';
+  // Correos con permiso de administrador (cuando se conecte el servidor real, el permiso se guarda allí, no en la app)
+  const ADMIN_EMAILS = ['tediopoemas@gmail.com'];
+  const isAdminAcc = (a) => !!a && ADMIN_EMAILS.includes(a.email);
+  const handlers = {};
+  const emit = (ev, data) => (handlers[ev] || []).forEach((fn) => fn(data));
+  let me = null; // id de la cuenta con sesión iniciada
+
+  const accounts = () => store.get('demo_accounts', {});
+  const saveAccounts = (a) => store.set('demo_accounts', a);
+  const msgs = () => store.get('demo_msgs', []);
+  const norm = (s) => String(s || '').trim();
+  const uid = () => Math.random().toString(36).slice(2) + Date.now();
+  const normEmail = (e) => norm(e).toLowerCase();
+  const validEmail = (e) => e.length <= 120 && /^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/.test(e);
+  const checkPass = (p) => {
+    p = String(p);
+    if (p.length < 8) throw new Error('La contraseña debe tener al menos 8 caracteres');
+    if (!/[a-zA-Z]/.test(p) || !/\d/.test(p)) throw new Error('La contraseña debe tener letras y números');
+  };
+  const byEmail = (email) => Object.values(accounts()).find((a) => a.email === email);
+  const push = (m) => { const all = msgs(); all.push(m); store.set('demo_msgs', all.slice(-300)); };
+
+  /* ---- Códigos de un solo uso (en modo de prueba se simulan; en producción los envía el proveedor de correo) ---- */
+  const CODE_TTL = 10 * 60 * 1000;   // vence a los 10 minutos
+  const RESEND_WAIT = 60 * 1000;     // 1 minuto entre envíos
+  const MAX_TRIES = 5;               // intentos por código
+  const codes = () => store.get('demo_codes', {});
+  function issueCode(email, purpose, force) {
+    const all = codes(), prev = all[email];
+    if (!force && prev && Date.now() - prev.sent < RESEND_WAIT) throw new Error('Espera ' + Math.ceil((RESEND_WAIT - (Date.now() - prev.sent)) / 1000) + ' s para pedir otro código');
+    const buf = new Uint32Array(1); crypto.getRandomValues(buf);
+    all[email] = { code: String(buf[0] % 1000000).padStart(6, '0'), purpose, exp: Date.now() + CODE_TTL, sent: Date.now(), tries: 0 };
+    store.set('demo_codes', all);
+  }
+  function checkCode(email, purpose, code) {
+    const all = codes(), c = all[email];
+    if (!c || c.purpose !== purpose) throw new Error('Pide un código nuevo');
+    if (Date.now() > c.exp) { delete all[email]; store.set('demo_codes', all); throw new Error('El código venció. Pide uno nuevo'); }
+    if (c.tries >= MAX_TRIES) { delete all[email]; store.set('demo_codes', all); throw new Error('Demasiados intentos. Pide un código nuevo'); }
+    if (norm(code) !== c.code) { c.tries++; store.set('demo_codes', all); throw new Error('Código incorrecto (' + (MAX_TRIES - c.tries) + ' intentos restantes)'); }
+    delete all[email]; store.set('demo_codes', all);
+  }
+  const fails = {}; // intentos fallidos de entrada por correo
+  function startSession(a) {
+    if (a.blocked) throw new Error('Esta cuenta está bloqueada. Contacta al administrador.');
+    const all = accounts(); if (all[a.id]) { all[a.id].lastLogin = Date.now(); saveAccounts(all); }
+    me = a.id; store.set('demo_session2', a.id); return { username: a.id }; }
+
+  // Otras pestañas del mismo navegador (sirve para probar con dos usuarios a la vez)
+  window.addEventListener('storage', (e) => {
+    if (e.key !== 'demo_msgs' || !me) return;
+    try {
+      const all = JSON.parse(e.newValue || '[]');
+      const known = new Set(JSON.parse(e.oldValue || '[]').map((m) => m.id));
+      all.filter((m) => !known.has(m.id) && (m.to === me || m.from === me)).forEach((m) => emit('message', m));
+    } catch {}
+  });
+
+  // Archivos grandes (documentos y videos): IndexedDB; si no está disponible, memoria.
+  const fileStore = (() => {
+    const memFiles = new Map();
+    let dbp = null;
+    const open = () => dbp || (dbp = new Promise((res, rej) => {
+      try {
+        const r = indexedDB.open('fire-files', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('f');
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      } catch (e) { rej(e); }
+    }));
+    return {
+      async put(id, blob) {
+        memFiles.set(id, blob);
+        try { const db = await open(); await new Promise((res, rej) => { const t = db.transaction('f', 'readwrite'); t.objectStore('f').put(blob, id); t.oncomplete = res; t.onerror = () => rej(t.error); }); } catch {}
+      },
+      async get(id) {
+        if (memFiles.has(id)) return memFiles.get(id);
+        try { const db = await open(); return await new Promise((res, rej) => { const q = db.transaction('f').objectStore('f').get(id); q.onsuccess = () => res(q.result || null); q.onerror = () => rej(q.error); }); } catch { return null; }
+      },
+    };
+  })();
+
+  return {
+    name: 'local',
+    note: 'Modo de prueba: los datos se guardan solo en este dispositivo y el correo es simulado.',
+    on(ev, fn) { (handlers[ev] = handlers[ev] || []).push(fn); },
+    init() {
+      me = store.get('demo_session2', null);
+      if (me && !accounts()[me]) me = null;
+      return me ? { username: me } : null;
+    },
+
+    /* ---- Cuentas ---- */
+    async register({ name, email, password }) {
+      name = norm(name).slice(0, 30); email = normEmail(email);
+      if (name.length < 2) throw new Error('Escribe tu nombre (mínimo 2 letras)');
+      if (!validEmail(email)) throw new Error('Escribe un correo válido');
+      checkPass(password);
+      const all = accounts(), ex = Object.values(all).find((a) => a.email === email);
+      if (ex && ex.verified) throw new Error('Ya existe una cuenta con ese correo. Entra o recupera tu contraseña.');
+      if (ex) { ex.displayName = name; ex.password = password; } // cuenta sin confirmar: se actualiza
+      else { const id = 'u_' + uid(); all[id] = { id, email, displayName: name, password, verified: false, about: '', photo: '', created: Date.now() }; }
+      saveAccounts(all);
+      issueCode(email, 'signup', true);
+      return { pending: true, email };
+    },
+    async verify(email, code, purpose = 'signup') {
+      email = normEmail(email);
+      checkCode(email, purpose, code);
+      const all = accounts(), a = Object.values(all).find((x) => x.email === email);
+      if (!a) throw new Error('Cuenta no encontrada');
+      a.verified = true; saveAccounts(all);
+      return startSession(a);
+    },
+    async resend(email, purpose = 'signup') {
+      email = normEmail(email);
+      const a = byEmail(email);
+      if (purpose === 'reset' && !(a && a.verified)) return { pending: true }; // no revelamos si el correo existe
+      if (!a) throw new Error('Cuenta no encontrada');
+      issueCode(email, purpose);
+      return { pending: true };
+    },
+    async login({ email, password }) {
+      email = normEmail(email);
+      const lock = fails[email];
+      if (lock && lock.until > Date.now()) throw new Error('Demasiados intentos. Espera ' + Math.ceil((lock.until - Date.now()) / 1000) + ' s');
+      const a = byEmail(email);
+      if (!a || a.password !== password) {
+        const f = (fails[email] = fails[email] || { n: 0, until: 0 });
+        if (++f.n >= 5) { f.until = Date.now() + 30000; f.n = 0; }
+        throw new Error('Correo o contraseña incorrectos');
+      }
+      delete fails[email];
+      if (!a.verified) {
+        try { issueCode(email, 'signup', true); } catch {}
+        const e = new Error('Tu correo aún no está confirmado.'); e.unverified = true; e.email = email; throw e;
+      }
+      return startSession(a);
+    },
+    async requestReset(email) {
+      email = normEmail(email);
+      if (!validEmail(email)) throw new Error('Escribe un correo válido');
+      const a = byEmail(email);
+      if (a && a.verified) issueCode(email, 'reset');
+      return { pending: true, email }; // misma respuesta exista o no el correo
+    },
+    async resetPassword(email, code, newPassword) {
+      email = normEmail(email);
+      checkPass(newPassword);
+      checkCode(email, 'reset', code);
+      const all = accounts(), a = Object.values(all).find((x) => x.email === email);
+      if (!a) throw new Error('Cuenta no encontrada');
+      a.password = newPassword; saveAccounts(all);
+    },
+    logout() { me = null; store.del('demo_session2'); },
+
+    /* Solo para el modo de prueba: muestra el código que "se envió" (un proveedor real no tiene esto) */
+    peekCode(email) {
+      const c = codes()[normEmail(email)];
+      return c && Date.now() < c.exp ? c.code : null;
+    },
+
+    /* ---- Perfil ---- */
+    // ---- Administración: nunca incluye contraseñas (ni aquí ni en el servidor real se pueden ver) ----
+    async adminListUsers() {
+      if (!isAdminAcc(accounts()[me])) throw new Error('Sin permiso');
+      const all = msgs();
+      return Object.values(accounts()).map((a) => ({ id: a.id, email: a.email, displayName: a.displayName, verified: !!a.verified, blocked: !!a.blocked,
+        created: a.created || 0, lastLogin: a.lastLogin || 0, admin: isAdminAcc(a), sent: all.filter((m) => m.from === a.id).length }))
+        .sort((x, y) => (y.created || 0) - (x.created || 0));
+    },
+    async adminSetBlocked(id, blocked) {
+      if (!isAdminAcc(accounts()[me])) throw new Error('Sin permiso');
+      const all = accounts(); if (!all[id]) throw new Error('No existe');
+      if (isAdminAcc(all[id])) throw new Error('No puedes bloquear a un administrador');
+      all[id].blocked = !!blocked; saveAccounts(all);
+    },
+    async adminDelete(id) {
+      if (!isAdminAcc(accounts()[me])) throw new Error('Sin permiso');
+      const all = accounts(); if (!all[id]) throw new Error('No existe');
+      if (isAdminAcc(all[id])) throw new Error('No puedes borrar a un administrador');
+      delete all[id]; saveAccounts(all);
+      store.set('demo_msgs', msgs().filter((m) => m.from !== id && m.to !== id));
+    },
+    async getProfile() {
+      const a = accounts()[me] || {};
+      return { username: me, email: a.email || '', displayName: a.displayName || '', about: a.about || '', photo: a.photo || '', isAdmin: isAdminAcc(a) };
+    },
+    async updateProfile(p) {
+      const all = accounts(), a = all[me];
+      if (!a) throw new Error('Sesión no válida');
+      if ('displayName' in p) {
+        const n = norm(p.displayName).slice(0, 30);
+        if (!n) throw new Error('El nombre no puede estar vacío');
+        a.displayName = n;
+      }
+      if ('about' in p) a.about = norm(p.about).slice(0, 80);
+      if ('photo' in p) {
+        if (!p.photo) a.photo = '';
+        else {
+          if (!/^data:image\/(jpeg|png|webp);base64,/.test(p.photo) || p.photo.length > 60000) throw new Error('La foto es demasiado grande');
+          a.photo = p.photo;
+        }
+      }
+      saveAccounts(all);
+      return this.getProfile();
+    },
+    async changePassword(oldP, newP) {
+      const all = accounts(), a = all[me];
+      if (!a || a.password !== oldP) throw new Error('La contraseña actual no es correcta');
+      checkPass(newP);
+      a.password = newP; saveAccounts(all);
+    },
+
+    /* ---- Contactos y mensajes ---- */
+    async listUsers() {
+      const list = Object.values(accounts()).filter((a) => a.verified && a.id !== me).map((a) => ({
+        username: a.id, displayName: a.displayName, about: a.about || '', photo: a.photo || '', online: false }));
+      list.push({ username: BOT, displayName: BOT, about: 'Te devuelve lo que le envías', photo: '', online: true });
+      const all = msgs();
+      for (const u of list) {
+        const last = all.filter((m) => (m.from === me && m.to === u.username) || (m.from === u.username && m.to === me)).pop();
+        u.last = last ? previewOf(last) : '';
+      }
+      return list;
+    },
+    async getFile(m) { return fileStore.get(m.id); },
+    async loadMessages(other) {
+      return msgs().filter((m) => (m.from === me && m.to === other) || (m.from === other && m.to === me)).slice(-200);
+    },
+    async send(to, p) {
+      const m = { id: uid(), from: me, to, type: p.type || 'text', ts: Date.now() };
+      if (m.type === 'text') {
+        m.text = norm(p.text).slice(0, 2000);
+        if (!m.text) return;
+      } else if (m.type === 'file' || m.type === 'video') {
+        const f = p.file;
+        if (!f || !f.size) throw new Error('Archivo no válido');
+        if (f.size > MAX_FILE) throw new Error('El archivo supera el límite de 10 MB');
+        if (BLOCKED.test(p.name || '')) throw new Error('Este tipo de archivo no está permitido');
+        m.name = String(p.name || 'archivo').slice(0, 120);
+        m.mime = String(p.mime || f.type || 'application/octet-stream').slice(0, 100);
+        m.size = f.size;
+        if (m.type === 'video') {
+          m.dur = Math.round(p.dur || 0);
+          if (typeof p.poster === 'string' && p.poster.startsWith('data:image/') && p.poster.length < 60000) m.poster = p.poster;
+        }
+        await fileStore.put(m.id, f);
+      } else if (m.type === 'location') {
+        const lat = Number(p.lat), lng = Number(p.lng);
+        if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180)) throw new Error('Ubicación no válida');
+        m.lat = lat; m.lng = lng; m.acc = Math.round(Number(p.acc) || 0);
+      } else {
+        if (!p.data || p.data.length > MAX_DATA) throw new Error('El archivo es demasiado grande');
+        m.data = p.data;
+        if (m.type === 'audio') m.dur = p.dur || 0;
+      }
+      push(m); emit('message', m);
+      if (to === BOT) { // Eco devuelve lo mismo que le envías, para poder probar
+        setTimeout(async () => {
+          const r = { ...m, id: uid(), from: BOT, to: me, ts: Date.now() };
+          if (r.type === 'text') r.text = 'Eco: ' + r.text;
+          if (r.type === 'file' || r.type === 'video') await fileStore.put(r.id, await fileStore.get(m.id));
+          push(r); emit('message', r);
+        }, 700);
+      }
+    },
+  };
+})();
+
+
+
+
+
+/* ================= Conexión con Supabase (cuentas reales, mensajes entre teléfonos, administración) ================= */
+const SupabaseBackend = !window.supabase ? null : (() => {
+  const cfg = FIRE_CONFIG;
+  const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+  });
+  const handlers = {};
+  const emit = (ev, data) => (handlers[ev] || []).forEach((fn) => fn(data));
+  let me = null, myEmail = '', inbox = null, presence = null, online = new Set();
+
+  const norm = (s) => String(s || '').trim();
+  const normEmail = (e) => norm(e).toLowerCase();
+  const validEmail = (e) => e.length <= 120 && /^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/.test(e);
+  const checkPass = (p) => {
+    p = String(p);
+    if (p.length < 8) throw new Error('La contraseña debe tener al menos 8 caracteres');
+    if (!/[a-zA-Z]/.test(p) || !/\d/.test(p)) throw new Error('La contraseña debe tener letras y números');
+  };
+  const newId = () => (crypto.randomUUID ? crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => { const r = (Math.random() * 16) | 0; return (c === 'x' ? r : (r & 3) | 8).toString(16); }));
+
+  // Traduce los errores de Supabase a mensajes claros
+  function fail(err) {
+    const m = String((err && err.message) || err || ''), c = String((err && err.code) || '');
+    let t = m;
+    if (c === 'email_not_confirmed' || /not confirmed/i.test(m)) { const e = new Error('Tu correo aún no está confirmado.'); e.unverified = true; return e; }
+    if (/invalid login/i.test(m)) t = 'Correo o contraseña incorrectos';
+    else if (c === 'user_banned' || /banned/i.test(m)) t = 'Esta cuenta está bloqueada. Contacta al administrador.';
+    else if (/already registered/i.test(m) || c === 'user_already_exists') t = 'Ya existe una cuenta con ese correo. Entra o recupera tu contraseña.';
+    else if (/rate limit/i.test(m) || /security purposes/i.test(m) || c === 'over_email_send_rate_limit' || c === 'over_request_rate_limit') t = 'Demasiados intentos. Espera un minuto e inténtalo de nuevo.';
+    else if (c === 'otp_expired' || /expired|invalid/i.test(m) && /token|otp/i.test(m)) t = 'Código incorrecto o vencido. Pide uno nuevo.';
+    else if (c === 'same_password' || /different from the old/i.test(m)) t = 'La contraseña nueva debe ser distinta de la anterior';
+    else if (c === 'weak_password') t = 'La contraseña es demasiado débil';
+    else if (/failed to fetch|network/i.test(m)) t = 'Sin conexión. Revisa tu internet.';
+    return new Error(t);
+  }
+  const must = ({ data, error }) => { if (error) throw fail(error); return data; };
+
+  const rowToMsg = (r) => ({ id: r.id, from: r.from_id, to: r.to_id, type: r.type, ts: Date.parse(r.created_at) || Date.now(), ...(r.body || {}) });
+
+  function connect() {
+    if (!me || inbox) return;
+    inbox = sb.channel('inbox-' + me)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'to_id=eq.' + me },
+        (p) => emit('message', rowToMsg(p.new)))
+      .subscribe();
+    presence = sb.channel('presence-fire', { config: { presence: { key: me } } });
+    presence.on('presence', { event: 'sync' }, () => { online = new Set(Object.keys(presence.presenceState())); emit('presence'); })
+      .subscribe(async (st) => { if (st === 'SUBSCRIBED') { try { await presence.track({ at: Date.now() }); } catch {} } });
+  }
+  function disconnect() {
+    try { if (inbox) sb.removeChannel(inbox); if (presence) sb.removeChannel(presence); } catch {}
+    inbox = presence = null; online = new Set();
+  }
+  function open(session) {
+    me = session.user.id; myEmail = session.user.email || '';
+    connect();
+    return { username: me };
+  }
+
+  return {
+    note: '',
+    on(ev, fn) { (handlers[ev] = handlers[ev] || []).push(fn); },
+
+    // Restaura la sesión guardada (es asíncrono)
+    async init() {
+      try {
+        const { data } = await sb.auth.getSession();
+        return data && data.session ? open(data.session) : null;
+      } catch { return null; }
+    },
+
+    async register({ name, email, password }) {
+      name = norm(name).slice(0, 30); email = normEmail(email);
+      if (name.length < 2) throw new Error('Escribe tu nombre (mínimo 2 letras)');
+      if (!validEmail(email)) throw new Error('Escribe un correo válido');
+      checkPass(password);
+      const { data, error } = await sb.auth.signUp({ email, password, options: { data: { name } } });
+      if (error) throw fail(error);
+      // Si el correo ya tiene una cuenta confirmada, Supabase no da error: devuelve un usuario sin identidades
+      if (data && data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0)
+        throw new Error('Ya existe una cuenta con ese correo. Entra o recupera tu contraseña.');
+      return { pending: true, email };
+    },
+
+    async verify(email, code, purpose = 'signup') {
+      const { data, error } = await sb.auth.verifyOtp({ email: normEmail(email), token: norm(code), type: purpose === 'reset' ? 'recovery' : 'signup' });
+      if (error) throw fail(error);
+      if (!data || !data.session) throw new Error('No se pudo iniciar la sesión');
+      return open(data.session);
+    },
+
+    async resend(email, purpose = 'signup') {
+      email = normEmail(email);
+      if (purpose === 'reset') { await sb.auth.resetPasswordForEmail(email); return { pending: true }; }
+      const { error } = await sb.auth.resend({ type: 'signup', email });
+      if (error) throw fail(error);
+      return { pending: true };
+    },
+
+    async login({ email, password }) {
+      email = normEmail(email);
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: String(password) });
+      if (error) {
+        const e = fail(error);
+        if (e.unverified) { try { await sb.auth.resend({ type: 'signup', email }); } catch {} e.email = email; }
+        throw e;
+      }
+      return open(data.session);
+    },
+
+    async requestReset(email) {
+      email = normEmail(email);
+      if (!validEmail(email)) throw new Error('Escribe un correo válido');
+      const { error } = await sb.auth.resetPasswordForEmail(email);
+      if (error && /rate|security purposes/i.test(error.message || '')) throw fail(error);
+      return { pending: true, email }; // misma respuesta exista o no el correo
+    },
+
+    async resetPassword(email, code, newPassword) {
+      checkPass(newPassword);
+      const { error } = await sb.auth.verifyOtp({ email: normEmail(email), token: norm(code), type: 'recovery' });
+      if (error) throw fail(error);
+      const up = await sb.auth.updateUser({ password: String(newPassword) });
+      if (up.error) { await sb.auth.signOut(); throw fail(up.error); }
+      await sb.auth.signOut();
+    },
+
+    logout() { disconnect(); me = null; myEmail = ''; sb.auth.signOut().catch(() => {}); },
+
+    async getProfile() {
+      const p = must(await sb.from('profiles').select('display_name, about, photo, is_admin').eq('id', me).single());
+      return { username: me, email: myEmail, displayName: p.display_name || '', about: p.about || '', photo: p.photo || '', isAdmin: !!p.is_admin };
+    },
+
+    async updateProfile(p) {
+      const up = {};
+      if ('displayName' in p) {
+        const n = norm(p.displayName).slice(0, 30);
+        if (!n) throw new Error('El nombre no puede estar vacío');
+        up.display_name = n;
+      }
+      if ('about' in p) up.about = norm(p.about).slice(0, 80);
+      if ('photo' in p) {
+        if (!p.photo) up.photo = '';
+        else {
+          if (!/^data:image\/(jpeg|png|webp);base64,/.test(p.photo) || p.photo.length > 60000) throw new Error('La foto es demasiado grande');
+          up.photo = p.photo;
+        }
+      }
+      if (Object.keys(up).length) must(await sb.from('profiles').update(up).eq('id', me));
+      return this.getProfile();
+    },
+
+    async changePassword(oldP, newP) {
+      const chk = await sb.auth.signInWithPassword({ email: myEmail, password: String(oldP) });
+      if (chk.error) throw new Error('La contraseña actual no es correcta');
+      checkPass(newP);
+      const { error } = await sb.auth.updateUser({ password: String(newP) });
+      if (error) throw fail(error);
+    },
+
+    async listUsers() {
+      connect();
+      const people = must(await sb.from('profiles').select('id, display_name, about, photo').neq('id', me)) || [];
+      const rows = must(await sb.from('messages').select('*').or('from_id.eq.' + me + ',to_id.eq.' + me).order('created_at', { ascending: false }).limit(300)) || [];
+      const last = {};
+      for (const r of rows) { const other = r.from_id === me ? r.to_id : r.from_id; if (!last[other]) last[other] = r; }
+      return people.map((u) => ({ username: u.id, displayName: u.display_name, about: u.about || '', photo: u.photo || '',
+        online: online.has(u.id), last: last[u.id] ? previewOf(rowToMsg(last[u.id])) : '' }));
+    },
+
+    async loadMessages(other) {
+      const rows = must(await sb.from('messages').select('*')
+        .or('and(from_id.eq.' + me + ',to_id.eq.' + other + '),and(from_id.eq.' + other + ',to_id.eq.' + me + ')')
+        .order('created_at', { ascending: false }).limit(200)) || [];
+      return rows.reverse().map(rowToMsg);
+    },
+
+    async getFile(m) {
+      if (!m.path) return null;
+      const { data, error } = await sb.storage.from('files').download(m.path);
+      if (error) throw fail(error);
+      return data;
+    },
+
+    async send(to, p) {
+      const id = newId(), type = p.type || 'text', body = {};
+      if (type === 'text') {
+        body.text = norm(p.text).slice(0, 2000);
+        if (!body.text) return;
+      } else if (type === 'file' || type === 'video') {
+        const f = p.file;
+        if (!f || !f.size) throw new Error('Archivo no válido');
+        if (f.size > MAX_FILE) throw new Error('El archivo supera el límite de 10 MB');
+        if (BLOCKED.test(p.name || '')) throw new Error('Este tipo de archivo no está permitido');
+        body.name = String(p.name || 'archivo').slice(0, 120);
+        body.mime = String(p.mime || f.type || 'application/octet-stream').slice(0, 100);
+        body.size = f.size;
+        if (type === 'video') {
+          body.dur = Math.round(p.dur || 0);
+          if (typeof p.poster === 'string' && p.poster.startsWith('data:image/') && p.poster.length < 60000) body.poster = p.poster;
+        }
+        body.path = me + '/' + id;
+        const up = await sb.storage.from('files').upload(body.path, f, { contentType: body.mime, upsert: false });
+        if (up.error) throw fail(up.error);
+      } else if (type === 'location') {
+        const lat = Number(p.lat), lng = Number(p.lng);
+        if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180)) throw new Error('Ubicación no válida');
+        body.lat = lat; body.lng = lng; body.acc = Math.round(Number(p.acc) || 0);
+      } else {
+        if (!p.data || p.data.length > MAX_DATA) throw new Error('El archivo es demasiado grande');
+        body.data = p.data;
+        if (type === 'audio') body.dur = p.dur || 0;
+      }
+      const { error } = await sb.from('messages').insert({ id, from_id: me, to_id: to, type, body });
+      if (error) throw fail(error);
+      emit('message', { id, from: me, to, type, ts: Date.now(), ...body });
+    },
+
+    /* ---- Administración: la seguridad la aplica el servidor (funciones SQL que exigen is_admin) ---- */
+    async adminListUsers() {
+      const rows = must(await sb.rpc('admin_list_users')) || [];
+      return rows.map((r) => ({ id: r.id, email: r.email, displayName: r.display_name || '(sin nombre)', verified: !!r.confirmed, blocked: !!r.blocked,
+        created: Date.parse(r.created_at) || 0, lastLogin: Date.parse(r.last_sign_in_at) || 0, admin: !!r.is_admin, sent: Number(r.sent) || 0 }));
+    },
+    async adminSetBlocked(id, blocked) { must(await sb.rpc('admin_set_blocked', { target: id, blocked: !!blocked })); },
+    async adminDelete(id) { must(await sb.rpc('admin_delete_user', { target: id })); },
+  };
+})();
+
+// Si falta la librería (sin internet al abrir la app), no se cae a modo de prueba en silencio: se avisa.
+const OfflineBackend = (() => {
+  const err = () => Promise.reject(new Error('No se pudo cargar el servicio. Revisa tu conexión a internet y recarga.'));
+  return { note: 'Sin conexión con el servidor', on() {}, init: () => null, logout() {},
+    register: err, verify: err, resend: err, login: err, requestReset: err, resetPassword: err, getProfile: err, updateProfile: err,
+    changePassword: err, listUsers: err, loadMessages: err, getFile: err, send: err, adminListUsers: err, adminSetBlocked: err, adminDelete: err };
+})();
+
+  const backend = !FIRE_CONFIG.supabaseUrl ? LocalBackend : (window.supabase ? SupabaseBackend : OfflineBackend);
+  const $ = (id) => document.getElementById(id);
+  let session = null, users = [], currentChat = null, mode = 'login';
+  const unread = {}; // mensajes sin leer por chat
+  const cache = {};  // mensajes ya cargados por chat
+  $('demo-note').textContent = backend.note || '';
+
+  function show(id) { document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === id)); }
+  let toastTimer;
+  function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 2600); }
+  const fmt = (s) => { s = Math.max(0, Math.round(Number(s) || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+  /* Avatares: foto si hay; si no, la inicial del nombre */
+  function setAvatar(el, name, photo) {
+    el.textContent = '';
+    if (typeof photo === 'string' && photo.startsWith('data:image/')) {
+      const im = document.createElement('img'); im.src = photo; im.alt = ''; el.appendChild(im);
+    } else el.textContent = (String(name || '?').trim()[0] || '?').toUpperCase();
+  }
+  const userInfo = (username) => users.find((x) => x.username === username) || { username, displayName: username, photo: '', about: '' };
+  const shownName = (username) => userInfo(username).displayName || username;
+
+  /* ---------- Acceso: crear cuenta, confirmar correo con código, entrar y recuperar contraseña ---------- */
+  let pending = null; // { email, purpose: 'signup' | 'reset' }
+  function setMode(m) {
+    mode = m;
+    const t = { login: ['Entrar', 'Entrar', 'No tengo cuenta · Crear una'],
+                register: ['Crear cuenta', 'Crear cuenta', 'Ya tengo cuenta · Entrar'],
+                forgot: ['Recuperar contraseña', 'Enviar código', 'Volver a Entrar'] }[m];
+    $('auth-title').textContent = t[0]; $('auth-btn').textContent = t[1]; $('auth-toggle').textContent = t[2];
+    $('row-name').hidden = m !== 'register';
+    $('row-pass').hidden = m === 'forgot';
+    $('row-pass2').hidden = m !== 'register';
+    $('auth-forgot').hidden = m !== 'login';
+    $('password').autocomplete = m === 'register' ? 'new-password' : 'current-password';
+    $('auth-error').textContent = '';
+  }
+  setMode('login');
+  function clearAuthFields(all) {
+    ['password', 'password2'].forEach((id) => ($(id).value = ''));
+    if (all) ['name', 'email'].forEach((id) => ($(id).value = ''));
+  }
+  $('auth-toggle').onclick = () => setMode(mode === 'login' ? 'register' : 'login');
+  $('auth-forgot').onclick = () => setMode('forgot');
+  $('auth-btn').onclick = async () => {
+    $('auth-error').textContent = '';
+    const btn = $('auth-btn'); btn.disabled = true;
+    try {
+      const email = $('email').value;
+      if (mode === 'register') {
+        if ($('password').value !== $('password2').value) throw new Error('Las contraseñas no coinciden');
+        const r = await backend.register({ name: $('name').value, email, password: $('password').value });
+        goVerify(r.email || email, 'signup');
+      } else if (mode === 'forgot') {
+        const r = await backend.requestReset(email);
+        goVerify(r.email || email, 'reset');
+      } else {
+        session = await backend.login({ email, password: $('password').value });
+        clearAuthFields(); start();
+      }
+    } catch (e) {
+      if (e.unverified) goVerify(e.email || $('email').value, 'signup', e.message);
+      else $('auth-error').textContent = e.message || 'Error de conexión';
+    } finally { btn.disabled = false; }
+  };
+  ['name', 'email', 'password', 'password2'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('auth-btn').click(); }));
+
+  /* Pantalla del código de 6 dígitos */
+  let resendTimer;
+  const maskEmail = (e) => { const [u, d] = String(e).split('@'); return (u[0] || '') + '•••@' + (d || ''); };
+  function showSim() { // solo en modo de prueba: un proveedor real no ofrece peekCode
+    const box = $('v-sim');
+    const c = backend.peekCode && pending ? backend.peekCode(pending.email) : null;
+    box.hidden = !c;
+    if (c) { box.textContent = 'MODO DE PRUEBA: no se envía un correo real. Tu código sería:'; const b = document.createElement('b'); b.id = 'v-sim-code'; b.textContent = c; box.appendChild(b); }
+  }
+  function startResendTimer(sec) {
+    clearInterval(resendTimer);
+    const until = Date.now() + sec * 1000;
+    const tick = () => {
+      const left = Math.ceil((until - Date.now()) / 1000), b = $('v-resend');
+      if (left > 0) { b.disabled = true; b.textContent = 'Reenviar código en ' + left + ' s'; }
+      else { b.disabled = false; b.textContent = 'Reenviar código'; clearInterval(resendTimer); }
+    };
+    tick(); resendTimer = setInterval(tick, 500);
+  }
+  function goVerify(email, purpose, note) {
+    pending = { email, purpose };
+    $('v-title').textContent = purpose === 'reset' ? 'Recupera tu contraseña' : 'Confirma tu correo';
+    $('v-text').textContent = (note ? note + ' ' : '') + 'Enviamos un código de 6 dígitos a ' + maskEmail(email) + '. Escríbelo aquí; vence en 10 minutos.';
+    $('v-newpw-row').hidden = purpose !== 'reset';
+    $('v-btn').textContent = purpose === 'reset' ? 'Cambiar contraseña' : 'Confirmar correo';
+    $('v-code').value = ''; $('v-error').textContent = '';
+    ['v-newpw', 'v-newpw2'].forEach((id) => ($(id).value = ''));
+    showSim(); startResendTimer(60);
+    show('s-verify'); setTimeout(() => $('v-code').focus(), 150);
+  }
+  $('v-code').addEventListener('input', () => {
+    $('v-code').value = $('v-code').value.replace(/\D/g, '').slice(0, 6);
+    if (pending && pending.purpose === 'signup' && $('v-code').value.length === 6) $('v-btn').click(); // se envía solo al completar
+  });
+  $('v-resend').onclick = async () => {
+    if (!pending) return;
+    try { await backend.resend(pending.email, pending.purpose); $('v-error').textContent = ''; toast('Te enviamos un código nuevo'); showSim(); startResendTimer(60); }
+    catch (e) { $('v-error').textContent = e.message || 'No se pudo reenviar'; }
+  };
+  $('v-btn').onclick = async () => {
+    if (!pending || $('v-btn').disabled) return;
+    $('v-error').textContent = '';
+    const code = $('v-code').value.trim();
+    if (!/^\d{6}$/.test(code)) return ($('v-error').textContent = 'Escribe los 6 dígitos del código');
+    $('v-btn').disabled = true;
+    try {
+      if (pending.purpose === 'reset') {
+        if ($('v-newpw').value !== $('v-newpw2').value) throw new Error('Las contraseñas no coinciden');
+        await backend.resetPassword(pending.email, code, $('v-newpw').value);
+        $('email').value = pending.email; pending = null; clearInterval(resendTimer);
+        setMode('login'); show('s-auth'); toast('Contraseña cambiada. Ya puedes entrar.');
+      } else {
+        session = await backend.verify(pending.email, code, 'signup');
+        pending = null; clearInterval(resendTimer); clearAuthFields(); start();
+      }
+    } catch (e) { $('v-error').textContent = e.message || 'Error'; }
+    finally { $('v-btn').disabled = false; }
+  };
+  ['v-code', 'v-newpw', 'v-newpw2'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('v-btn').click(); }));
+  $('v-back').onclick = () => {
+    const reset = pending && pending.purpose === 'reset';
+    pending = null; clearInterval(resendTimer);
+    setMode(reset ? 'forgot' : 'register'); show('s-auth');
+  };
+  $('logout').onclick = () => { stopAllAudio(); backend.logout(); session = null; currentChat = null; myProfile = null; users = []; clearAuthFields(true); setMode('login'); show('s-auth'); };
+
+  /* ---------- Contactos ---------- */
+  async function loadUsers() { users = await backend.listUsers(); renderUsers(); }
+  function renderUsers() {
+    const box = $('users');
+    box.innerHTML = '';
+    if (!users.length) { box.innerHTML = '<div class="empty">Todavía no hay más usuarios.</div>'; return; }
+    users.sort((a, b) => b.online - a.online || a.username.localeCompare(b.username));
+    for (const u of users) {
+      const row = document.createElement('div');
+      row.className = 'user';
+      const av = document.createElement('div'); av.className = 'avatar'; setAvatar(av, u.displayName || u.username, u.photo);
+      const dot = document.createElement('span'); dot.className = 'dot' + (u.online ? ' on' : ''); av.appendChild(dot);
+      const info = document.createElement('div'); info.className = 'info';
+      const name = document.createElement('div'); name.className = 'name'; name.textContent = u.displayName || u.username;
+      const sub = document.createElement('div'); sub.className = 'sub';
+      sub.textContent = u.last || (u.online ? 'en línea' : 'desconectado');
+      info.append(name, sub);
+      row.append(av, info);
+      if (unread[u.username]) { const b = document.createElement('span'); b.className = 'badge'; b.textContent = unread[u.username]; row.appendChild(b); }
+      row.onclick = () => openChat(u.username);
+      box.appendChild(row);
+    }
+  }
+
+  /* ---------- Conversación ---------- */
+  async function openChat(name) {
+    currentChat = name; unread[name] = 0;
+    const info = userInfo(name);
+    $('chat-title').textContent = info.displayName || name;
+    setAvatar($('chat-avatar'), info.displayName || name, info.photo);
+    $('chat-sub').textContent = info.online ? 'en línea' : (info.about || '');
+    show('s-chat');
+    cache[name] = await backend.loadMessages(name);
+    renderMessages();
+  }
+  $('back').onclick = async () => { stopAllAudio(); cancelRec(); currentChat = null; await loadUsers(); show('s-users'); };
+  function renderMessages() {
+    const box = $('messages');
+    box.innerHTML = '';
+    for (const m of cache[currentChat] || []) box.appendChild(bubble(m));
+    box.scrollTop = box.scrollHeight;
+  }
+
+  /* Audio: un solo reproductor activo a la vez */
+  let playing = null;
+  function stopAllAudio() { if (playing) { playing.pause(); playing = null; } }
+  function audioPlayer(m) {
+    const wrap = document.createElement('div'); wrap.className = 'audio';
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'play'; btn.textContent = '▶'; btn.setAttribute('aria-label', 'Reproducir');
+    const bar = document.createElement('div'); bar.className = 'bar';
+    const fill = document.createElement('div'); fill.className = 'fill'; bar.appendChild(fill);
+    const time = document.createElement('span'); time.className = 'atime'; time.textContent = fmt(m.dur);
+    const a = new Audio(m.data); a.preload = 'metadata';
+    const total = () => (isFinite(a.duration) && a.duration > 0 ? a.duration : m.dur || 0);
+    btn.onclick = () => {
+      if (a.paused) { if (playing && playing !== a) playing.pause(); playing = a; a.play().catch(() => toast('No se pudo reproducir el audio')); }
+      else a.pause();
+    };
+    a.onplay = () => (btn.textContent = '❚❚');
+    a.onpause = () => (btn.textContent = '▶');
+    a.ontimeupdate = () => { const t = total(); fill.style.width = t ? (a.currentTime / t) * 100 + '%' : '0'; time.textContent = fmt(t - a.currentTime); };
+    a.onended = () => { fill.style.width = '0'; time.textContent = fmt(total()); btn.textContent = '▶'; };
+    bar.onclick = (e) => { const r = bar.getBoundingClientRect(); const t = total(); if (t) a.currentTime = ((e.clientX - r.left) / r.width) * t; };
+    wrap.append(btn, bar, time);
+    return wrap;
+  }
+
+  function bubble(m) {
+    const d = document.createElement('div');
+    d.className = 'msg' + (m.from === session.username ? ' mine' : '');
+    if (m.type === 'image') {
+      d.classList.add('media');
+      const img = document.createElement('img'); img.className = 'photo'; img.src = m.data; img.alt = 'Foto';
+      img.onclick = () => openViewer({ img: m.data });
+      d.appendChild(img);
+    } else if (m.type === 'audio') {
+      d.classList.add('voice');
+      d.appendChild(audioPlayer(m));
+    } else if (m.type === 'video') {
+      d.classList.add('media');
+      const v = document.createElement('div'); v.className = 'vthumb'; v.setAttribute('role', 'button');
+      if (typeof m.poster === 'string' && m.poster.startsWith('data:image/')) { const im = document.createElement('img'); im.src = m.poster; im.alt = ''; v.appendChild(im); }
+      const pb = document.createElement('div'); pb.className = 'playbtn'; pb.textContent = '▶';
+      v.appendChild(pb);
+      if (m.dur) { const du = document.createElement('div'); du.className = 'vdur'; du.textContent = fmt(m.dur); v.appendChild(du); }
+      v.onclick = () => openVideo(m);
+      d.appendChild(v);
+    } else if (m.type === 'file') {
+      d.classList.add('file');
+      const c = document.createElement('div'); c.className = 'filecard'; c.setAttribute('role', 'button');
+      const name = String(m.name || 'archivo');
+      const ext = (name.includes('.') ? name.split('.').pop() : 'FILE').toLowerCase().slice(0, 4);
+      const badge = document.createElement('div');
+      badge.className = 'ext ' + (ext === 'pdf' ? 'pdf' : /^(doc|docx|odt|rtf)$/.test(ext) ? 'doc' : /^(xls|xlsx|csv|ods)$/.test(ext) ? 'xls' : /^(ppt|pptx|odp)$/.test(ext) ? 'ppt' : '');
+      badge.textContent = ext.toUpperCase();
+      const fn = document.createElement('div'); fn.className = 'fn';
+      const nm = document.createElement('div'); nm.className = 'name'; nm.textContent = name;
+      const sz = document.createElement('div'); sz.className = 'size'; sz.textContent = fmtSize(m.size);
+      const tp = document.createElement('div'); tp.className = 'tap'; tp.textContent = 'Abrir / guardar';
+      fn.append(nm, sz, tp); c.append(badge, fn);
+      c.onclick = () => openFile(m);
+      d.appendChild(c);
+    } else if (m.type === 'location') {
+      d.classList.add('loc');
+      const lat = Number(m.lat), lng = Number(m.lng); // siempre números: nunca se inserta texto ajeno en el enlace
+      if (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+        const a = document.createElement('a'); a.className = 'locard'; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+        const pin = document.createElement('div'); pin.className = 'pin'; pin.textContent = '📍';
+        const box = document.createElement('div');
+        const t = document.createElement('div'); t.className = 't'; t.textContent = 'Ubicación';
+        const s = document.createElement('div'); s.className = 's';
+        s.textContent = lat.toFixed(5) + ', ' + lng.toFixed(5) + (m.acc ? ' · ±' + Number(m.acc) + ' m' : '');
+        const go = document.createElement('div'); go.className = 'go'; go.textContent = 'Abrir en el mapa';
+        box.append(t, s, go); a.append(pin, box); d.appendChild(a);
+      } else d.appendChild(document.createTextNode('Ubicación no válida'));
+    } else {
+      d.appendChild(document.createTextNode(m.text));
+    }
+    const t = document.createElement('time');
+    t.textContent = new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    d.appendChild(t);
+    return d;
+  }
+  let viewerUrl = null;
+  function openViewer({ img, video }) {
+    const v = $('viewer-video'), i = $('viewer-img');
+    i.hidden = !img; v.hidden = !video;
+    if (img) i.src = img;
+    if (video) { viewerUrl = video; v.src = video; v.play().catch(() => {}); }
+    $('viewer').hidden = false;
+  }
+  function closeViewer() {
+    const v = $('viewer-video');
+    v.pause(); v.removeAttribute('src'); v.load();
+    if (viewerUrl) { URL.revokeObjectURL(viewerUrl); viewerUrl = null; }
+    $('viewer-img').removeAttribute('src');
+    $('viewer').hidden = true;
+  }
+  $('viewer').onclick = (e) => { if (e.target.id !== 'viewer-video') closeViewer(); };
+  $('viewer-close').onclick = closeViewer;
+
+  async function sendPayload(p) {
+    try { await backend.send(currentChat, p); } catch (e) { toast(e.message || 'No se pudo enviar'); }
+  }
+
+  /* Texto */
+  const form = $('send-form');
+  $('text').addEventListener('input', () => form.classList.toggle('has-text', $('text').value.trim().length > 0));
+  // No usamos el envío de formularios: algunos visores lo bloquean. Botón y tecla Enter llaman directo.
+  function sendText() {
+    const text = $('text').value.trim();
+    if (!text || !currentChat) return;
+    sendPayload({ type: 'text', text });
+    $('text').value = ''; form.classList.remove('has-text');
+    $('text').focus();
+  }
+  form.onsubmit = (e) => { e.preventDefault(); sendText(); };
+  $('send-btn').onclick = (e) => { e.preventDefault(); sendText(); };
+  $('text').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendText(); } });
+
+  /* Fotos */
+  /* Menú "+" */
+  const menu = $('menu');
+  const fmtSize = (n) => { n = Number(n) || 0; return n < 1024 ? n + ' B' : n < 1048576 ? Math.round(n / 1024) + ' KB' : (n / 1048576).toFixed(1) + ' MB'; };
+  const nativeCap = () => (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? window.Capacitor.Plugins : null);
+
+  /* Guardar / abrir un archivo: en la app Android se abre el menú "Abrir con…"; en el navegador se descarga */
+  async function saveFile(blob, name, id) {
+    const cap = nativeCap();
+    if (cap && cap.Filesystem && cap.Share) {
+      const dataUrl = await blobToDataURL(blob);
+      const safe = String(name).replace(/[^\w.\- ]+/g, '_');
+      const r = await cap.Filesystem.writeFile({ path: 'fire/' + id + '/' + safe, data: dataUrl.split(',')[1], directory: 'CACHE', recursive: true });
+      await cap.Share.share({ title: name, url: r.uri, dialogTitle: 'Abrir o guardar' });
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+  }
+  async function openFile(m) {
+    try {
+      const blob = await backend.getFile(m);
+      if (!blob) return toast('El archivo ya no está disponible');
+      await saveFile(blob, m.name, m.id);
+    } catch { toast('No se pudo abrir el archivo'); }
+  }
+  async function openVideo(m) {
+    try {
+      const blob = await backend.getFile(m);
+      if (!blob) return toast('El video ya no está disponible');
+      openViewer({ video: URL.createObjectURL(blob) });
+    } catch { toast('No se pudo abrir el video'); }
+  }
+  function videoMeta(file) {
+    return new Promise((res) => {
+      const url = URL.createObjectURL(file);
+      const v = document.createElement('video');
+      v.muted = true; v.playsInline = true; v.preload = 'metadata';
+      let done = false;
+      const finish = (o) => { if (done) return; done = true; clearTimeout(t); URL.revokeObjectURL(url); res(o); };
+      const t = setTimeout(() => finish({ poster: '', dur: 0 }), 6000);
+      v.onloadedmetadata = () => { try { v.currentTime = Math.min(0.5, (v.duration || 1) / 2); } catch { finish({ poster: '', dur: v.duration || 0 }); } };
+      v.onseeked = () => {
+        try {
+          const s = Math.min(1, 320 / Math.max(v.videoWidth, v.videoHeight, 1));
+          const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(v.videoWidth * s)); c.height = Math.max(1, Math.round(v.videoHeight * s));
+          c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+          finish({ poster: c.toDataURL('image/jpeg', 0.6), dur: v.duration || 0 });
+        } catch { finish({ poster: '', dur: v.duration || 0 }); }
+      };
+      v.onerror = () => finish({ poster: '', dur: 0 });
+      v.src = url;
+    });
+  }
+  function checkFile(f) {
+    if (BLOCKED.test(f.name)) { toast('Este tipo de archivo no está permitido por seguridad'); return false; }
+    if (f.size > MAX_FILE) { toast('Máximo 10 MB por archivo. Este pesa ' + fmtSize(f.size)); return false; }
+    if (!f.size) { toast('El archivo está vacío'); return false; }
+    return true;
+  }
+  $('pick-video').onclick = () => setTimeout(() => { menu.hidden = true; }, 0);
+  $('pick-doc').onclick = () => setTimeout(() => { menu.hidden = true; }, 0);
+  $('file-video').onchange = async () => {
+    const f = $('file-video').files[0]; $('file-video').value = '';
+    if (!f || !currentChat || !checkFile(f)) return;
+    toast('Preparando video…');
+    const meta = await videoMeta(f);
+    $('toast').classList.remove('on');
+    sendPayload({ type: 'video', file: f, name: f.name, mime: f.type, poster: meta.poster, dur: meta.dur });
+  };
+  $('file-doc').onchange = () => {
+    const f = $('file-doc').files[0]; $('file-doc').value = '';
+    if (!f || !currentChat || !checkFile(f)) return;
+    sendPayload({ type: 'file', file: f, name: f.name, mime: f.type });
+  };
+
+  $('attach').onclick = (e) => { e.stopPropagation(); menu.hidden = !menu.hidden; };
+  document.addEventListener('click', (e) => { if (!menu.hidden && !menu.contains(e.target)) menu.hidden = true; });
+  $('pick-photo').onclick = () => setTimeout(() => { menu.hidden = true; }, 0);
+  $('pick-loc').onclick = () => { menu.hidden = true; shareLocation(); };
+
+  function confirmBox(title, text, okLabel, cancelLabel) {
+    return new Promise((res) => {
+      $('confirm-title').textContent = title; $('confirm-text').textContent = text; $('confirm-ok').textContent = okLabel; $('confirm-cancel').textContent = cancelLabel || 'Cancelar';
+      $('confirm').hidden = false;
+      const done = (v) => { $('confirm').hidden = true; res(v); };
+      $('confirm-ok').onclick = () => done(true);
+      $('confirm-cancel').onclick = () => done(false);
+    });
+  }
+
+  /* Ubicación: se pide confirmación y se envía una sola vez (no es en tiempo real) */
+  async function shareLocation() {
+    if (!currentChat) return;
+    if (!navigator.geolocation) return toast('Este dispositivo no permite obtener la ubicación');
+    const ok = await confirmBox('Compartir ubicación', 'Vas a enviar tu ubicación actual a ' + currentChat + '. Se envía una sola vez, no se comparte en tiempo real.', 'Enviar');
+    if (!ok) return;
+    toast('Obteniendo ubicación…');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        $('toast').classList.remove('on');
+        sendPayload({ type: 'location', lat: +pos.coords.latitude.toFixed(5), lng: +pos.coords.longitude.toFixed(5), acc: pos.coords.accuracy });
+      },
+      (err) => toast(err.code === 1 ? 'Permiso de ubicación denegado. Actívalo en los ajustes.' : 'No se pudo obtener la ubicación. Intenta de nuevo.'),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+    );
+  }
+  $('file').onchange = async () => {
+    const f = $('file').files[0]; $('file').value = '';
+    if (!f || !currentChat) return;
+    if (!f.type.startsWith('image/')) return toast('Elige una imagen');
+    try { sendPayload({ type: 'image', data: await compressImage(f) }); }
+    catch (e) { toast(e.message || 'No se pudo leer la imagen'); }
+  };
+  async function compressImage(file) {
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('No se pudo leer la imagen')); i.src = url; });
+      let max = 1280, q = 0.75, data;
+      for (let n = 0; n < 6; n++) {
+        const s = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        data = c.toDataURL('image/jpeg', q);
+        if (data.length < MAX_DATA * 0.75) return data;
+        max *= 0.8; q = Math.max(0.4, q - 0.08);
+      }
+      return data;
+    } finally { URL.revokeObjectURL(url); }
+  }
+
+  /* Mensajes de voz: toca el micrófono, habla, toca enviar */
+  const MAX_SECONDS = 60;
+  let rec = null;
+  const blobToDataURL = (b) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
+  function showRec(on) { $('rec').hidden = !on; form.hidden = on; }
+
+  $('mic').onclick = async () => {
+    if (rec || !currentChat) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) return toast('Este navegador no permite grabar audio');
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch { return toast('No se pudo usar el micrófono. Revisa el permiso.'); }
+    const mime = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+    const mr = new MediaRecorder(stream, mime ? { mimeType: mime, audioBitsPerSecond: 24000 } : { audioBitsPerSecond: 24000 });
+    const r = { mr, stream, chunks: [], start: Date.now(), cancelled: false, timer: null };
+    rec = r;
+    mr.ondataavailable = (e) => { if (e.data && e.data.size) r.chunks.push(e.data); };
+    mr.onstop = async () => {
+      stream.getTracks().forEach((t) => t.stop());
+      clearInterval(r.timer);
+      if (rec === r) rec = null;
+      showRec(false);
+      const secs = (Date.now() - r.start) / 1000;
+      if (r.cancelled || secs < 0.6) return;
+      const blob = new Blob(r.chunks, { type: mr.mimeType || 'audio/webm' });
+      sendPayload({ type: 'audio', data: await blobToDataURL(blob), dur: Math.round(secs) });
+    };
+    r.timer = setInterval(() => {
+      const s = (Date.now() - r.start) / 1000;
+      $('rec-time').textContent = fmt(s);
+      if (s >= MAX_SECONDS) $('rec-send').click();
+    }, 200);
+    $('rec-time').textContent = '0:00';
+    showRec(true);
+    mr.start();
+  };
+  $('rec-send').onclick = () => { if (rec && rec.mr.state !== 'inactive') rec.mr.stop(); };
+  function cancelRec() { if (rec) { rec.cancelled = true; if (rec.mr.state !== 'inactive') rec.mr.stop(); } }
+  $('rec-cancel').onclick = cancelRec;
+
+  /* ---------- Eventos en tiempo real ---------- */
+  backend.on('message', (m) => {
+    if (!session) return;
+    const mine = m.from === session.username;
+    const other = mine ? m.to : m.from;
+    const list = (cache[other] = cache[other] || []);
+    if (list.some((x) => x.id === m.id)) return;
+    list.push(m);
+    if (currentChat === other) {
+      const box = $('messages');
+      box.appendChild(bubble(m)); box.scrollTop = box.scrollHeight;
+    } else if (!mine) {
+      unread[other] = (unread[other] || 0) + 1;
+      if (!currentChat) loadUsers();
+    }
+    if (!mine && (document.hidden || currentChat !== other)) incoming(m, other);
+  });
+  backend.on('presence', () => { if (!currentChat) loadUsers(); });
+
+  /* =====================  PERFIL  ===================== */
+  let myProfile = null, pendingPhoto; // pendingPhoto: undefined = sin cambio, '' = quitar, 'data:...' = nueva
+  async function loadMyProfile() {
+    myProfile = await backend.getProfile();
+    setAvatar($('me-btn'), myProfile.displayName, myProfile.photo);
+  }
+  function curPhoto() { return pendingPhoto === undefined ? myProfile.photo : pendingPhoto; }
+  /* ---------- Panel de administrador ---------- */
+  const fdate = (t) => t ? new Date(t).toLocaleString('es', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+  async function renderAdmin() {
+    const box = $('admin-list'); box.innerHTML = '';
+    let list;
+    try { list = await backend.adminListUsers(); } catch (e) { toast(e.message || 'Sin permiso'); show('s-profile'); return; }
+    $('admin-sub').textContent = list.length + (list.length === 1 ? ' cuenta' : ' cuentas');
+    const note = document.createElement('div'); note.className = 'admin-note';
+    note.textContent = 'Las contraseñas no se pueden ver: se guardan cifradas y nadie, ni tú, puede leerlas. Si alguien la olvida, usa "¿Olvidaste tu contraseña?" con su correo.';
+    box.appendChild(note);
+    for (const u of list) {
+      const c = document.createElement('div'); c.className = 'acct';
+      const top = document.createElement('div'); top.className = 'top';
+      const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = u.displayName; top.appendChild(nm);
+      const tag = (t, k) => { const s = document.createElement('span'); s.className = 'tag ' + k; s.textContent = t; top.appendChild(s); };
+      if (u.admin) tag('ADMIN', 'ok');
+      tag(u.verified ? 'Confirmado' : 'Sin confirmar', u.verified ? 'ok' : 'warn');
+      if (u.blocked) tag('Bloqueado', 'bad');
+      const em = document.createElement('div'); em.className = 'em'; em.textContent = u.email;
+      const meta = document.createElement('div'); meta.className = 'meta';
+      meta.textContent = 'Creada: ' + fdate(u.created) + ' · Último acceso: ' + fdate(u.lastLogin) + ' · Mensajes enviados: ' + u.sent;
+      c.append(top, em, meta);
+      if (!u.admin) {
+        const acts = document.createElement('div'); acts.className = 'acts';
+        const b1 = document.createElement('button'); b1.type = 'button'; b1.textContent = u.blocked ? 'Desbloquear' : 'Bloquear';
+        b1.onclick = async () => { try { await backend.adminSetBlocked(u.id, !u.blocked); renderAdmin(); } catch (e) { toast(e.message); } };
+        const b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'danger'; b2.textContent = 'Eliminar';
+        b2.onclick = async () => {
+          if (!(await confirmBox('Eliminar cuenta', 'Se borrará la cuenta de ' + u.email + ' y sus mensajes. No se puede deshacer.', 'Eliminar', 'Cancelar'))) return;
+          try { await backend.adminDelete(u.id); toast('Cuenta eliminada'); renderAdmin(); } catch (e) { toast(e.message); }
+        };
+        acts.append(b1, b2); c.appendChild(acts);
+      }
+      box.appendChild(c);
+    }
+  }
+  $('open-admin').onclick = () => { show('s-admin'); renderAdmin(); };
+  $('admin-back').onclick = () => show('s-profile');
+  function openProfile() {
+    if (!myProfile) return;
+    pendingPhoto = undefined;
+    $('p-name').value = myProfile.displayName; $('p-about').value = myProfile.about; $('p-user').value = myProfile.email;
+    setAvatar($('p-avatar'), myProfile.displayName, myProfile.photo);
+    $('p-photo-remove').hidden = !myProfile.photo;
+    $('open-admin').hidden = !myProfile.isAdmin;
+    ['pw-old', 'pw-new', 'pw-new2'].forEach((id) => ($(id).value = ''));
+    document.querySelector('details.pw').open = false;
+    show('s-profile');
+  }
+  $('me-btn').onclick = openProfile;
+  $('profile-back').onclick = () => show('s-users');
+  $('p-photo-btn').onclick = $('p-avatar').onclick = () => $('p-file').click();
+  $('p-name').addEventListener('input', () => { if (!curPhoto()) setAvatar($('p-avatar'), $('p-name').value || myProfile.username, ''); });
+  $('p-file').onchange = async () => {
+    const f = $('p-file').files[0]; $('p-file').value = '';
+    if (!f) return;
+    if (!f.type.startsWith('image/')) return toast('Elige una imagen');
+    try {
+      pendingPhoto = await profilePhoto(f);
+      setAvatar($('p-avatar'), $('p-name').value, pendingPhoto);
+      $('p-photo-remove').hidden = false;
+    } catch (e) { toast(e.message || 'No se pudo leer la imagen'); }
+  };
+  $('p-photo-remove').onclick = () => {
+    pendingPhoto = ''; setAvatar($('p-avatar'), $('p-name').value || myProfile.username, ''); $('p-photo-remove').hidden = true;
+  };
+  // Foto de perfil: recorte cuadrado centrado, 256 px, JPEG liviano (cabe de sobra en el perfil)
+  async function profilePhoto(file) {
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('No se pudo leer la imagen')); i.src = url; });
+      const side = Math.min(img.width, img.height), sx = (img.width - side) / 2, sy = (img.height - side) / 2;
+      let size = 256, q = 0.82, data;
+      for (let n = 0; n < 6; n++) {
+        const c = document.createElement('canvas'); c.width = c.height = size;
+        c.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, size, size);
+        data = c.toDataURL('image/jpeg', q);
+        if (data.length < 45000) return data;
+        q = Math.max(0.5, q - 0.1); size = Math.round(size * 0.85);
+      }
+      return data;
+    } finally { URL.revokeObjectURL(url); }
+  }
+  $('p-save').onclick = async () => {
+    try {
+      const patch = { displayName: $('p-name').value, about: $('p-about').value };
+      if (pendingPhoto !== undefined) patch.photo = pendingPhoto;
+      myProfile = await backend.updateProfile(patch);
+      pendingPhoto = undefined;
+      setAvatar($('me-btn'), myProfile.displayName, myProfile.photo);
+      $('p-name').value = myProfile.displayName;
+      toast('Perfil actualizado');
+    } catch (e) { toast(e.message || 'No se pudo guardar'); }
+  };
+  $('pw-save').onclick = async () => {
+    const a = $('pw-old').value, n = $('pw-new').value, n2 = $('pw-new2').value;
+    if (!a || !n) return toast('Completa los campos');
+    if (n !== n2) return toast('Las contraseñas nuevas no coinciden');
+    try {
+      await backend.changePassword(a, n);
+      ['pw-old', 'pw-new', 'pw-new2'].forEach((id) => ($(id).value = ''));
+      document.querySelector('details.pw').open = false;
+      toast('Contraseña cambiada');
+    } catch (e) { toast(e.message || 'No se pudo cambiar'); }
+  };
+
+  /* =====================  NOTIFICACIONES  =====================
+     - App abierta pero en otro chat: aviso arriba (banner) + vibración.
+     - App en segundo plano: notificación del sistema (nativa en el APK, Notification API en el navegador).
+     - App cerrada del todo: requiere "push" (Firebase Cloud Messaging) -> se conecta junto con Firebase. */
+  const pref = {
+    mem: {},
+    get(k) { try { const v = localStorage.getItem(k); return v === null ? this.mem[k] ?? null : v; } catch { return this.mem[k] ?? null; } },
+    set(k, v) { this.mem[k] = v; try { localStorage.setItem(k, v); } catch {} },
+  };
+  const Notifs = (() => {
+    const native = () => (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? window.Capacitor.Plugins : null);
+    let onOpen = () => {};
+    const n0 = native();
+    if (n0 && n0.LocalNotifications) {
+      n0.LocalNotifications.addListener('localNotificationActionPerformed', (e) => {
+        const c = e && e.notification && e.notification.extra && e.notification.extra.chat;
+        if (c) onOpen(c);
+      });
+    }
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+      navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.chat) onOpen(e.data.chat); });
+    }
+    return {
+      onOpen(fn) { onOpen = fn; },
+      supported() { const n = native(); return !!(n && n.LocalNotifications) || 'Notification' in window; },
+      async permission() {
+        const n = native();
+        if (n && n.LocalNotifications) { const r = await n.LocalNotifications.checkPermissions(); return r.display === 'granted' ? 'granted' : r.display === 'denied' ? 'denied' : 'default'; }
+        return 'Notification' in window ? Notification.permission : 'denied';
+      },
+      async request() {
+        const n = native();
+        if (n && n.LocalNotifications) { const r = await n.LocalNotifications.requestPermissions(); return r.display === 'granted' ? 'granted' : 'denied'; }
+        return Notification.requestPermission();
+      },
+      async show(title, body, chat) {
+        const n = native();
+        if (n && n.LocalNotifications) {
+          await n.LocalNotifications.schedule({ notifications: [{ id: Date.now() % 2000000000, title, body, extra: { chat } }] });
+          return;
+        }
+        if ('serviceWorker' in navigator) {
+          try {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (reg && reg.showNotification) { await reg.showNotification(title, { body, tag: chat, icon: 'icon.png', data: { chat } }); return; }
+          } catch {} // sin service worker (p. ej. archivo local): se usa el método directo
+        }
+        const nt = new Notification(title, { body, tag: chat, icon: 'icon.png' });
+        nt.onclick = () => { window.focus(); onOpen(chat); nt.close(); };
+      },
+    };
+  })();
+
+  async function openChatFromAlert(name) {
+    if (!session) return;
+    if (!users.length) await loadUsers();
+    openChat(name);
+  }
+  Notifs.onOpen(openChatFromAlert);
+
+  const notifOn = () => pref.get('fire_notif') === 'on';
+  function paintBell() { $('bell').textContent = notifOn() ? '🔔' : '🔕'; }
+  $('bell').onclick = async () => {
+    if (notifOn()) { pref.set('fire_notif', 'off'); paintBell(); return toast('Notificaciones desactivadas'); }
+    if (!Notifs.supported()) return toast('Este navegador no permite notificaciones');
+    let perm = await Notifs.permission();
+    if (perm === 'default') perm = await Notifs.request();
+    if (perm === 'granted') { pref.set('fire_notif', 'on'); toast('Notificaciones activadas'); }
+    else toast('Permiso denegado. Actívalo en los ajustes del teléfono.');
+    paintBell();
+  };
+
+  let bannerTimer;
+  function banner(other, body) {
+    const info = userInfo(other);
+    const b = $('banner');
+    b.innerHTML = '';
+    const av = document.createElement('div'); av.className = 'avatar'; setAvatar(av, info.displayName || other, info.photo);
+    const bt = document.createElement('div'); bt.className = 'bt';
+    const bn = document.createElement('div'); bn.className = 'bn'; bn.textContent = info.displayName || other;
+    const bb = document.createElement('div'); bb.className = 'bb'; bb.textContent = body;
+    bt.append(bn, bb); b.append(av, bt);
+    b.onclick = () => { b.hidden = true; openChatFromAlert(other); };
+    b.hidden = false;
+    clearTimeout(bannerTimer); bannerTimer = setTimeout(() => (b.hidden = true), 4500);
+  }
+  function incoming(m, other) {
+    const body = previewOf(m);
+    if (document.hidden) {
+      if (notifOn()) Notifs.show(shownName(other), body, other).catch(() => {});
+    } else {
+      banner(other, body);
+      if (navigator.vibrate) { try { navigator.vibrate(60); } catch {} }
+    }
+  }
+
+  async function start() {
+    show('s-users'); loadUsers(); paintBell(); loadMyProfile();
+    // primera vez: ofrecer las notificaciones
+    if (pref.get('fire_notif') === null && Notifs.supported()) {
+      pref.set('fire_notif', 'off');
+      const yes = await confirmBox('Notificaciones', '¿Quieres recibir un aviso cuando alguien te escriba?', 'Activar', 'Ahora no');
+      if (yes) $('bell').click();
+    }
+  }
+  Promise.resolve(backend.init()).then((saved) => { if (saved) { session = saved; start(); } });
+})();
+</script>
+</body>
+</html>
